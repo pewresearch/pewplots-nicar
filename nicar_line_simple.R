@@ -13,11 +13,11 @@ my_line <- function(data,
                     x,
                     y,
                     color_by = NULL, #user provided
-                    color = "___", #your default color, name or hexcode
+                    color = "red", #your default color, name or hexcode
                     facet_by = NULL, #user provided
                     facet_ncol = 1,
-                    facet_scales = "___", #fixed or free
-                    points = "___", #your default point style — extremes, all, none?
+                    facet_scales = "fixed", #fixed or free
+                    points = "all", #your default point style — extremes, all, none?
                     points_at = NULL ) { #user provided
   
   # ASSIGN VARS AND REFRAME DATA --------------------------------------------
@@ -117,8 +117,8 @@ my_line <- function(data,
                             hjust = label_hjust,
                             vjust = label_vjust),
                         data = points_data,
-                        fontface = "___", #your style
-                        family = "___", #your font
+                        fontface = "plain", #your style
+                        family = "Arial", #your font
                         size = 3)
   
   

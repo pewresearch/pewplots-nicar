@@ -9,26 +9,26 @@ my_theme <- function(legend = FALSE, axes = FALSE, gridlines = FALSE, ...){
   #base font size, in pts
   base_size = 8
   #base font family - what font does your organization use?
-  base_family = "___"
+  base_family = "Arial"
   
   #headline
-  plot_title <- element_text(family = "___",
+  plot_title <- element_text(family = "Arial",
                              size = 13,
                              margin =  margin(b=4, unit = "pt"),
                              #left aligned; for center, hjust = 0.5
                              hjust = 0, vjust = 0)
   #subheadline
-  plot_subtitle <- element_text(family = "___",
+  plot_subtitle <- element_text(family = "Arial",
                                 size = 9,
                                 #italic, bold?
-                                face = "___",
+                                face = "italic",
                                 margin =  margin(b = 6, unit = "pt"),
                                 #left aligned; for center, hjust = 0.5
                                 hjust = 0, vjust = 0)
   
   #facet formatting
   strip_background <- element_blank()
-  strip_text <- element_text(family = "___", size = 8.5)
+  strip_text <- element_text(family = "Arial", size = 8.5)
   
 
   #keep the conditional statements for each element separate!
@@ -50,9 +50,9 @@ my_theme <- function(legend = FALSE, axes = FALSE, gridlines = FALSE, ...){
   #axes - also TRUE or FALSE
   if (axes == TRUE) {
     axis_line <- element_line(color = "#A4A4A4", linewidth = .2)
-    axis_line_y <- element_blank() #if you want a y-axis line, delete this and line 62
+    axis_line_y <- element_blank() #if you want a y-axis line, delete this  
     axis_ticks_x <-  element_line(color = "#A4A4A4", linewidth = .2)
-    axis_ticks_y <- element_line(linewidth = 0) #if you want y-axis ticks, delete this and line 65
+    axis_ticks_y <- element_line(linewidth = 0) #if you want y-axis ticks, delete this 
     axis_ticks_length <- unit(6, "pt")
     axis_text_x <- element_text(family = base_family,  size = 8, vjust = 0)
     axis_text_y <- element_text(family = base_family, size = 8, hjust = 1, vjust = 0.5)
