@@ -1,0 +1,690 @@
+---
+title: "Customizing ggplot for yourself or your organization"
+output: html_document
+date: "2026-03-07"
+---
+
+## Load packages
+
+These are all of the packages we're going to use to build our theme and line functions.
+```{r}
+#| eval: FALSE
+
+install.packages("tidyverse", dependencies = TRUE)
+install.packages("magrittr", dependencies = TRUE)
+install.packages("rlang", dependencies = TRUE)
+install.packages("scales", dependencies = TRUE)
+install.packages("lemon", dependencies = TRUE)
+```
+
+```{r}
+#| eval: TRUE
+#| echo: TRUE
+#| message: FALSE 
+library(tidyverse)
+library(magrittr)
+library(rlang)
+library(scales)
+library(lemon)
+```
+
+### Theme function
+
+The three parameters that we're going to specify are `legend`, `axes`, and `gridlines`. If your style guide makes any of these irrelevant to you, you can delete them and/or specify the default behavior yourself. This function will not control plot size or colors.
+
+We're going to go through the chunks one by one, but they won't run separately. Follow along in `nicar_theme.R` to build, customize and run your own function. 
+
+The first part of our function is setting up the base size and font to be used throughout, the overall header styling, and header styling for facetted plots. Fill in the blanks with your own font. You should feel free to tweak the sizing and margins (which control how far from the plot area elements sit), but you don't need to. 
+
+```{r}
+#| eval: FALSE
+
+my_theme <- function(legend = FALSE, axes = FALSE, gridlines = FALSE, ...){
+  
+  #base font size, in pts
+  base_size = 8
+  #base font family - what font does your organization use?
+  base_family = "___"
+  
+  #headline
+  plot_title <- element_text(family = "___",
+                             size = 13,
+                             margin =  margin(b=4, unit = "pt"),
+                             #left aligned; for center, hjust = 0.5
+                             hjust = 0, vjust = 0)
+  #subheadline
+  plot_subtitle <- element_text(family = "___",
+                                size = 9,
+                                #italic, bold?
+                                face = "___",
+                                margin =  margin(b = 6, unit = "pt"),
+                                #left aligned; for center, hjust = 0.5
+                                hjust = 0, vjust = 0)
+  
+  #facet formatting
+  strip_background <- element_blank()
+  strip_text <- element_text(family = "___", size = 8.5)
+```
+
+Now, we can move on to specifying the parameters we're allowing users to interact with. Again, you can set different defaults or allow users to control more/fewer things.
+
+Let's start with legend. Think about what needs to be specified in the `TRUE` condition, and then specify those objects as `NULL`/`none`/`element_blank()` in the `FALSE` condition. You'll see why when we put everything together at the end.
+
+::: {.callout-note}
+If you want to use any attributes that we don't — e.g. `legend_title` in the `TRUE` condition — you can replace `element_blank()` with `element_text()` (which pulls the base font size and family from the start of the function).
+:::
+
+```{r}
+#| eval: FALSE
+
+if (legend == TRUE) {
+    legend_title <-  element_blank()
+    legend_margin <-  margin(0,0,0,0)
+    legend_position <- "top" #or "bottom", "left", "right"
+    legend_box_margin <-  margin(-5,-10, 0,-10) 
+    legend_text <- element_text()
+  } else {
+    legend_position <- "none"
+    legend_title <-  element_blank()
+    legend_text <-  element_blank()
+    legend_margin <- NULL
+    legend_box_margin <- NULL
+  }
+```
+
+Now, we can think about our axes, following the same principles as above. The `TRUE` condition specifies where and how to draw axis lines, ticks and labels. 
+
+```{r}
+#| eval: FALSE
+
+if (axes == TRUE) {
+    axis_line <- element_line(color = "#A4A4A4", linewidth = .2)
+    axis_line_y <- element_blank() #if you want a y-axis line, delete this and the line starting with axis_ticks_y
+    axis_ticks_x <-  element_line(color = "#A4A4A4", linewidth = .2)
+    axis_ticks_y <- element_line(linewidth = 0) #if you want y-axis ticks, delete this and the line starting with axis_line_y
+    axis_ticks_length <- unit(6, "pt")
+    axis_text_x <- element_text(family = base_family,  size = 8, vjust = 0)
+    axis_text_y <- element_text(family = base_family, size = 8, hjust = 1, vjust = 0.5)
+    axis_title <- element_blank() #replace with element_text() if axes need titles
+    panel_border =  element_blank()
+  } else {
+    axis_line<- element_line(linewidth = 0)
+    axis_line_y <- NULL
+    axis_ticks<-element_line(linewidth = 0)
+    axis_ticks_x <-element_line(linewidth = 0)
+    axis_ticks_y <-element_line(linewidth = 0)
+    axis_ticks_length <- unit(0, "pt")
+    axis_text_x<-element_blank()
+    axis_text_y<-element_text(family = base_family, size = 8, hjust = 1, vjust = 0.5)
+    axis_title<-element_blank()
+    panel_border <- element_blank()
+  }
+```
+
+Lastly, we'll specify our gridlines. We specify these separately from axes because there are situations in which you may want an x-axis but not x-gridlines, for example, but if you wanted to combine them, you could.
+
+The options here are one set, two sets, or none. We don't use the minor gridlines, but you could by replacing `element_blank()` with `element_line()`. You can also control the line type and width, and the color, though we imagine most if not all of us will stick with black/grey. 
+
+```{r}
+#| eval: FALSE
+
+if (gridlines == 1) { #no x gridlines, yes y gridlines
+    panel_grid_major_x<-element_blank()
+    panel_grid_minor_y<-element_blank()
+    panel_grid_minor_x<-element_blank()
+    panel_grid<-element_line(color = "black", linewidth = .2)
+    panel_grid_major_y<-element_line(linetype = "dotted", color = "black", linewidth = .3)
+  } else if (gridlines == 2) { #both x and y gridlines
+    panel_grid<-element_line(color = "black", linewidth = .2)
+    panel_grid_major_y<-element_line(linetype = "solid", color = "#D7D7D7", linewidth = .1)
+    panel_grid_major_x<-element_line(linetype = "dotted", color = "black", linewidth = .3)
+    panel_grid_minor_y<-element_blank()
+    panel_grid_minor_x<-element_blank()
+  } else { #no gridlines
+    panel_grid <- element_blank()
+    panel_grid_major_y <- NULL
+    panel_grid_major_x <- NULL
+    panel_grid_minor_y <- NULL
+    panel_grid_minor_x <- NULL
+  }
+```
+
+Now that we've created all of those objects, we can put them all together!
+
+All we're doing is taking `theme_bw()` and replacing some parameters with the objects we created. We needed to specify the `FALSE` conditions the way that we did so that when this part of the function pulls an object, it doesn't run into errors from unspecified arguments.
+
+::: {.callout-note}
+We recommend naming your objects similarly to the parameter you're specifying, but not exactly the same way. We use the name of the parameter with an underscore instead of a period, for example.
+:::
+
+```{r}
+#| eval: TRUE
+#| echo: FALSE
+
+my_theme <- function(legend = FALSE, axes = FALSE, gridlines = FALSE, ...){
+
+  base_size = 8
+  base_family = "Franklin Gothic Book"
+  
+  plot_title <- element_text(family = "Franklin Gothic Demi",
+                             size = 13,
+                             margin =  margin(b=4, unit = "pt"),
+                             hjust = 0, vjust = 0)
+  plot_subtitle <- element_text(family = "Georgia",
+                                size = 9,
+                                face = "italic",
+                                margin =  margin(b = 6, unit = "pt"),
+                                hjust = 0, vjust = 0)
+  
+  strip_background <- element_blank()
+  strip_text <- element_text(family = "Franklin Gothic Book", size = 8.5)
+  
+  if (legend == TRUE) {
+    legend_title <-  element_blank()
+    legend_margin <-  margin(0,0,0,0)
+    legend_position <- "top" #or "bottom", "left", "right"
+    legend_box_margin <-  margin(-5,-10, 0,-10) 
+    legend_text <- element_text()
+  } else {
+    legend_position <- "none"
+    legend_title <-  element_blank()
+    legend_text <-  element_blank()
+    legend_margin <- NULL
+    legend_box_margin <- NULL
+  }
+
+  if (axes == TRUE) {
+    axis_line <- element_line(color = "#A4A4A4", linewidth = .2)
+    axis_line_y <- element_blank() 
+    axis_ticks_x <-  element_line(color = "#A4A4A4", linewidth = .2)
+    axis_ticks_y <- element_line(linewidth = 0) 
+    axis_ticks_length <- unit(6, "pt")
+    axis_text_x <- element_text(family = base_family,  size = 8, vjust = 0)
+    axis_text_y <- element_text(family = base_family, size = 8, hjust = 1, vjust = 0.5)
+    axis_title <- element_blank() 
+    panel_border =  element_blank()
+  } else {
+    axis_line<- element_line(linewidth = 0)
+    axis_line_y <- NULL
+    axis_ticks<-element_line(linewidth = 0)
+    axis_ticks_x <-element_line(linewidth = 0)
+    axis_ticks_y <-element_line(linewidth = 0)
+    axis_ticks_length <- unit(0, "pt")
+    axis_text_x<-element_blank()
+    axis_text_y<-element_text(family = base_family, size = 8, hjust = 1, vjust = 0.5)
+    axis_title<-element_blank()
+    panel_border <- element_blank()
+  }
+
+  if (gridlines == 1) { 
+    panel_grid_major_x<-element_blank()
+    panel_grid_minor_y<-element_blank()
+    panel_grid_minor_x<-element_blank()
+    panel_grid<-element_line(color = "black", linewidth = .2)
+    panel_grid_major_y<-element_line(linetype = "dotted", color = "black", linewidth = .3)
+  } else if (gridlines == 2) { 
+    panel_grid<-element_line(color = "black", linewidth = .2)
+    panel_grid_major_y<-element_line(linetype = "solid", color = "#D7D7D7", linewidth = .1)
+    panel_grid_major_x<-element_line(linetype = "dotted", color = "black", linewidth = .3)
+    panel_grid_minor_y<-element_blank()
+    panel_grid_minor_x<-element_blank()
+  } else { 
+    panel_grid <- element_blank()
+    panel_grid_major_y <- NULL
+    panel_grid_major_x <- NULL
+    panel_grid_minor_y <- NULL
+    panel_grid_minor_x <- NULL
+  }
+  
+  theme <- theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    theme(plot.title = plot_title,
+          plot.subtitle = plot_subtitle,
+          # plot.caption = plot_caption,
+          legend.position = legend_position,
+          legend.title = legend_title,
+          legend.text = legend_text,
+          legend.margin = legend_margin,
+          legend.box.margin = legend_box_margin,
+          axis.line = axis_line,
+          axis.line.y = axis_line_y,
+          axis.ticks.x =  axis_ticks_x,
+          axis.ticks.y =  axis_ticks_y,
+          axis.ticks.length =  axis_ticks_length,
+          axis.text.x = axis_text_x,
+          axis.text.y = axis_text_y,
+          axis.title =  axis_title,
+          panel.grid =  panel_grid,
+          panel.grid.major.y =  panel_grid_major_y,
+          panel.grid.major.x =   panel_grid_major_x,
+          panel.grid.minor.y =   panel_grid_minor_y,
+          panel.grid.minor.x =  panel_grid_minor_x,
+          panel.border =  panel_border,
+          strip.background =  strip_background,
+          strip.text = strip_text,
+          complete = TRUE
+    )
+}
+```
+
+```{r}
+#| eval: FALSE
+
+  theme <- theme_bw(base_size = base_size, base_family = base_family) %+replace%
+    theme(plot.title = plot_title,
+          plot.subtitle = plot_subtitle,
+          plot.caption = plot_caption,
+          legend.position = legend_position,
+          legend.title = legend_title,
+          legend.text = legend_text,
+          legend.margin = legend_margin,
+          legend.box.margin = legend_box_margin,
+          axis.line = axis_line,
+          axis.line.y = axis_line_y,
+          axis.ticks.x =  axis_ticks_x,
+          axis.ticks.y =  axis_ticks_y,
+          axis.ticks.length =  axis_ticks_length,
+          axis.text.x = axis_text_x,
+          axis.text.y = axis_text_y,
+          axis.title =  axis_title,
+          panel.grid =  panel_grid,
+          panel.grid.major.y =  panel_grid_major_y,
+          panel.grid.major.x =   panel_grid_major_x,
+          panel.grid.minor.y =   panel_grid_minor_y,
+          panel.grid.minor.x =  panel_grid_minor_x,
+          panel.border =  panel_border,
+          strip.background =  strip_background,
+          strip.text = strip_text,
+          complete = TRUE
+    )
+}
+```
+
+We're going to show you what this looks like on an actual plot (and then we'll do it together after we run through the line function!). First, we'll need some data.
+```{r}
+my_data <- read.csv("~/pewplots/nicar/voting_data.csv")
+```
+
+```{r}
+#| eval: FALSE
+#| include: FALSE
+## If you're having trouble reading the data, you can run this code chunk:
+
+my_data <- data.frame(
+    location = c(rep("In person at polling places", 9),
+                 rep("By absentee or mail-in ballot", 9)) |>
+        factor(levels = c("In person at polling places",
+                          "By absentee or mail-in ballot"),
+               ordered = TRUE),
+    date = c(rep(c(rep("Nov 2020", 3),
+                   rep("Nov 2022", 3),
+                   rep("Nov 2024", 3)), 2)),
+    party = c(rep(c("Dem candidate voters",
+                    "Rep candidate voters",
+                    "All voters"), 6)) |>
+        factor(levels = c("All voters",
+                          "Rep candidate voters",
+                          "Dem candidate voters"),
+               ordered = TRUE),
+    share = c(98, 64, 82,
+              97, 75, 86,
+              86, 94, 90,
+              95, 19, 59,
+              94, 41, 67,
+              78, 72, 75)
+)
+```
+
+Here's a simple line chart.
+```{r}
+ggplot(data = my_data) +
+  geom_line(aes(x = date, y = share,
+                color = party, group = party),
+            stat = "identity") +
+  geom_point(aes(x = date, y = share,
+                 color = party)) +
+  geom_text(aes(x = date, y = share,
+                label = share)) +
+  facet_grid(cols = vars(location)) +
+  scale_color_manual(values = c(
+    "All voters" = "grey",
+    "Dem candidate voters" = "#436983",
+    "Rep candidate voters" = "#BF3927")
+    )
+```
+
+This looks okay, but the default theme is pretty different than the appearance we're trying to replicate. Let's see what it looks like if we apply the custom theme function we just created.
+
+```{r}
+ggplot(data = my_data) +
+  geom_line(aes(x = date, y = share,
+                color = party, group = party),
+            stat = "identity") +
+  geom_point(aes(x = date, y = share,
+                 color = party)) +
+  geom_text(aes(x = date, y = share,
+                label = share)) +
+  facet_grid(cols = vars(location)) +
+  scale_color_manual(values = c(
+    "All voters" = "grey",
+    "Dem candidate voters" = "#436983",
+    "Rep candidate voters" = "#BF3927")
+    ) +
+  my_theme()
+```
+
+That's a lot closer to what we're looking for! And if we specify a few of those parameters we programmed, we can tweak the appearance even more.
+```{r}
+ggplot(data = my_data) +
+  geom_line(aes(x = date, y = share,
+                color = party, group = party),
+            stat = "identity") +
+  geom_point(aes(x = date, y = share,
+                 color = party)) +
+  geom_text(aes(x = date, y = share,
+                label = share)) +
+  facet_grid(cols = vars(location)) +
+  scale_color_manual(values = c(
+    "All voters" = "grey",
+    "Dem candidate voters" = "#436983",
+    "Rep candidate voters" = "#BF3927")
+    ) +
+  my_theme(legend = TRUE,
+           axes = TRUE,
+           gridlines = FALSE)
+```
+
+### Line function
+
+Now that we have a function that can apply our styles to any ggplot we create, let's create an actual plotting function. Follow along in `nicar_line_simple.R`.
+
+First, think through what users need to be able to control. You could go even simpler than this — for example, if you always want facet_scales to be fixed, you can specify that in the function and not provide it as a parameter users can interact with. You could add more — for example, see `nicar_line.R` in the Github repo for a version that allows users to control point locations and data labels separately.
+
+```{r}
+#| eval: FALSE
+
+my_line <- function(data,
+                    x,
+                    y,
+                    color_by = NULL, #user provided
+                    color = "___", #your default color, name or hexcode
+                    facet_by = NULL, #user provided
+                    facet_ncol = 1,
+                    facet_scales = "___", #fixed or free
+                    points = "___", #your default point style — extremes, all, none?
+                    points_at = NULL )
+```
+
+Start by assigning variables so they can be used later in the function. If you include facetting functionality, you'll want to tell your function how to group your data up front.
+
+::: {.callout-note}
+Quosures are essentially a way to store a variable under a placeholder name that won't be evaluated until later in the function. We use quosures wherever users supply their own expression (think: variable name). This is a great resource if you want to learn more: https://adv-r.hadley.nz/quasiquotation.html
+:::
+
+```{r}
+#| eval: FALSE
+  quo_x <- enquo(x)
+  quo_y <- enquo(y)
+  quo_color <- enquo(color_by)
+  quo_facet <- enquo(facet_by)
+  
+  #if facetting variable provided, group data by that variable.
+  if (quo_is_null(quo_facet)) {
+    data <- data
+  } else {
+    data <- data %>%
+      group_by(!!quo_facet)
+  }
+```
+
+Then, you can add point and label positioning functionality. Here, our options are `all`, `none`, `extremes` (first and last values), and `specific` (wherein users can provide a character vector of specific x values to plot points for). You could include more or less than that. 
+
+`add_label_position()` allows us to dynamically set the horizontal and vertical placement of data labels, which prevents them from overlapping with points or going off of the plot area. Then, we use pipes to filter the data based on what users specify they want to plot, and add our label position function. 
+
+```{r}
+#| eval: FALSE
+add_label_position <- function(df) {
+    mutate(df,
+           label_hjust = case_when(!!quo_x == max(!!quo_x) ~ -0.5, 
+                                   !!quo_x == min(!!quo_x) ~ 1.5, 
+                                   TRUE ~ 0), 
+           label_vjust = case_when(!!quo_x == max(!!quo_x) ~ 0,
+                                   !!quo_x == min(!!quo_x) ~ 0,
+                                   TRUE ~ -1))
+  }
+  
+  #data and positioning for possible label positions
+  if (points == "all" | points == "none" | points == FALSE) {
+    points_data <- data %>%
+      add_label_position()
+  } else if (points == "extremes") {
+    points_data <- data %>%
+      filter(!!quo_x == min(!!quo_x) | !!quo_x == max(!!quo_x)) %>%
+      add_label_position()
+  } else if (points == "specific") {
+    points_data <- data %>%
+      add_label_position() %>%
+      filter(as.character(!!quo_x) %in% points_at)
+  }
+```
+
+Once we've done our data manipulation steps, we can move on to actual plotting layers using `ggplot`. First, we'll create our line layer with `geom_line`, using the quosures we created above. To evaluate a quosure, we use the expression `!!`.
+
+If users don't provide a `color_by` variable, that means we'll just have one line in our chart and it will default to the `color` parameter (eitehr your default or what the user provided). If they do, we'll want to group our data by that variable (which is what the `group = !!quo_color` line does). 
+
+``` {r}
+#| eval: FALSE
+  if (quo_is_null(quo_color)) {
+    geom <- geom_line(aes(x = !!quo_x,
+                          y = !!quo_y,
+                          group = 1),
+                      color = color,
+                      data = data,
+                      linewidth = 1.5)
+  } else {
+    geom <- geom_line(aes(x = !!quo_x,
+                          y = !!quo_y,
+                          group = !!quo_color,
+                          color = !!quo_color),
+                      data = data,
+                      linewidth = 1.5)
+  }
+```
+
+We'll build our point layer similarly, using `geom_point`. In the `data` argument, use the `points_data` object we created in the first step — that's how the function will plot just the points users want and not every point in the full data frame. 
+
+``` {r}
+#| eval: FALSE
+if (points == FALSE | points == "none") {
+    point <- NULL
+  } else if (quo_is_null(quo_color)) {
+    point <- geom_point(aes(x = !!quo_x,
+                            y = !!quo_y),
+                        data = points_data,
+                        shape = 21,
+                        size = 1.5,
+                        stroke = 1,
+                        fill = "white", 
+                        color = color)
+  } else {
+    point <- geom_point(aes(x = !!quo_x,
+                            y = !!quo_y,
+                            color = !!quo_color),
+                        data = points_data,
+                        shape = 21,
+                        size = 1.5,
+                        stroke = 1,
+                        fill = "white")
+  }
+```
+
+Now, we'll build our text layer with `geom_text` using the quosures, `points_data` object, and label positioning objects we created earlier in the function. This is how we'll get data labels onto the nodes.   
+
+```{r}
+#| eval: FALSE
+    labels <- geom_text(aes(x = !!quo_x,
+                            y = !!quo_y,
+                            label = !!quo_y,
+                            hjust = label_hjust,
+                            vjust = label_vjust),
+                        data = points_data,
+                        fontface = "___", #your style
+                        family = "___", #your font
+                        size = 3)
+```
+
+Facetting is a simpler yes/no situation, where the facet object is NULL if the argument is unused. If users specify a variable to facet by, the `else` statement will also provide the scales and number of columns to sort facets into. 
+
+```{r}
+#| eval: FALSE
+if (quo_is_null(quo_facet)) {
+    facet <- NULL
+  } else {
+    facet <- facet_wrap(quo_facet,
+                        scales = facet_scales,
+                        ncol = facet_ncol)
+  }
+```
+
+If you want a capped axis, add this line of code. 
+
+```{r}
+#| eval: FALSE
+  axis_style <- coord_capped_cart(bottom = capped_horizontal())
+```
+
+Now, in order to finish and generate the plot, you just have to `list()` all the objects we created. If you add or remove objects, be sure that's reflected here.
+
+```{r}
+#| eval: TRUE
+#| echo: FALSE
+my_line <- function(data,
+                    x,
+                    y,
+                    color_by = NULL, #user provided
+                    color = "blue", #your default color, name or hexcode
+                    facet_by = NULL, #user provided
+                    facet_ncol = 1,
+                    facet_scales = "fixed", #fixed or free
+                    points = "extremes", #your default point style — extremes, all, none?
+                    points_at = NULL ) { #user provided
+  
+  # ASSIGN VARS AND REFRAME DATA --------------------------------------------
+
+  quo_x <- enquo(x)
+  quo_y <- enquo(y)
+  quo_color <- enquo(color_by)
+  quo_facet <- enquo(facet_by)
+  
+    if (quo_is_null(quo_facet)) {
+    data <- data
+  } else {
+    data <- data %>%
+      group_by(!!quo_facet)
+  }
+
+  add_label_position <- function(df) {
+    mutate(df,
+           label_hjust = case_when(!!quo_x == max(!!quo_x) ~ -0.5, 
+                                   !!quo_x == min(!!quo_x) ~ 1.5, 
+                                   TRUE ~ 0),
+           label_vjust = case_when(!!quo_x == max(!!quo_x) ~ 0,
+                                   !!quo_x == min(!!quo_x) ~ 0,
+                                   TRUE ~ -1))
+  }
+  
+  if (points == "all" | points == "none" | points == FALSE) {
+    points_data <- data %>%
+      add_label_position()
+  } else if (points == "extremes") {
+    points_data <- data %>%
+      filter(!!quo_x == min(!!quo_x) | !!quo_x == max(!!quo_x)) %>%
+      add_label_position()
+  } else if (points == "specific") {
+    points_data <- data %>%
+      add_label_position() %>%
+      filter(as.character(!!quo_x) %in% points_at)
+  }
+  
+  
+  # CREATE LINE LAYER -------------------------------------------------------
+  
+  if (quo_is_null(quo_color)) {
+    geom <- geom_line(aes(x = !!quo_x,
+                          y = !!quo_y,
+                          group = 1),
+                      color = color,
+                      data = data,
+                      linewidth = 1.5)
+  } else {
+    geom <- geom_line(aes(x = !!quo_x,
+                          y = !!quo_y,
+                          group = !!quo_color,
+                          color = !!quo_color),
+                      data = data,
+                      linewidth = 1.5)
+  }
+  
+  # CREATE POINT LAYER -------------------------------------------------------
+  
+  if (points == FALSE | points == "none") {
+    point <- NULL
+  } else if (quo_is_null(quo_color)) {
+    point <- geom_point(aes(x = !!quo_x,
+                            y = !!quo_y),
+                        data = points_data,
+                        shape = 21,
+                        size = 1.5,
+                        stroke = 1,
+                        fill = "white", 
+                        color = color)
+  } else {
+    point <- geom_point(aes(x = !!quo_x,
+                            y = !!quo_y,
+                            color = !!quo_color),
+                        data = points_data,
+                        shape = 21,
+                        size = 1.5,
+                        stroke = 1,
+                        fill = "white")
+  }
+  
+  
+  # CREATE TEXT LAYER -------------------------------------------------------
+
+    labels <- geom_text(aes(x = !!quo_x,
+                            y = !!quo_y,
+                            label = !!quo_y,
+                            hjust = label_hjust,
+                            vjust = label_vjust),
+                        data = points_data,
+                        fontface = "plain", #your style
+                        family = "Franklin Gothic Book", #your font
+                        size = 3)
+  
+  
+  # CREATE FACET LAYER ------------------------------------------------------
+  
+  if (quo_is_null(quo_facet)) {
+    facet <- NULL
+  } else {
+    facet <- facet_wrap(quo_facet,
+                        scales = facet_scales,
+                        ncol = facet_ncol)
+  }
+  
+  # CREATE AXIS LAYER -------------------------------------------------------
+  axis_style <- coord_capped_cart(bottom = capped_horizontal())
+  
+  # GENERATE PLOT -----------------------------------------------------------
+
+  list(geom, point, labels, facet, axis_style)
+  
+}
+```
+```{r}
+#| eval: FALSE
+  list(geom, point, labels, facet, axis_style)
+
+```
+
+You are now the proud owner of custom theme and line functions! Let's head over to `class.Rmd` to make some plots.

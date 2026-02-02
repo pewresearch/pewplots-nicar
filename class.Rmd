@@ -1,7 +1,7 @@
 ---
 title: "Using your custom functions"
 output: html_document
-date: "2025-03-08"
+date: "2026-03-07"
 ---
 
 ## Loading your libraries
@@ -63,11 +63,17 @@ source("nicar_theme.R")
 ```
 
 ## Making your plot and applying your functions
+First, let's take a look at what our data looks like:
+```{r}
+head(my_data)
+```
 
 Here's where you can customize your plot using the parameters we programmed in the custom function!
 
 ```{r making plot}
 ggplot() +
-    my_line(x = date, y = share) +
-    my_theme()
+    my_line(data = my_data,
+            x = date, 
+            y = share) +
+    my_theme() 
 ```

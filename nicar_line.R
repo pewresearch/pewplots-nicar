@@ -13,10 +13,10 @@ my_line <- function(data,
                      x,
                      y,
                      color_by = NULL, #user provided
-                     color = "___", #your default color, name or hexcode
+                     color = "red", #your default color, name or hexcode
                      facet_by = NULL, #user provided
                      facet_ncol = 1,
-                     facet_scales = "___", #fixed or free
+                     facet_scales = "fixed", #fixed or free
                      points = "extremes", #your default point style 
                      points_at = NULL, #user provided
                      data_labels = NULL, #user provided, or can set your own default, e.g. "all"
@@ -157,8 +157,8 @@ my_line <- function(data,
                             hjust = label_hjust,
                             vjust = label_vjust),
                         data = labels_data,
-                        fontface = "___", #your style
-                        family = "___", #your font
+                        fontface = "bold", #your style
+                        family = "Times New Roman", #your font
                         size = 3)
   } else {
     labels <- geom_text(aes(x = !!quo_x,
@@ -168,8 +168,8 @@ my_line <- function(data,
                             hjust = label_hjust,
                             vjust = label_vjust),
                         data = labels_data,
-                        fontface = "___", #your style
-                        family = "___", #your font
+                        fontface = "bold", #your style
+                        family = "Times New Roman", #your font
                         size = 3)
     
   }
